@@ -164,6 +164,20 @@ if [ ! -z ${TARGETDIR+x} ] ; then
   cd "${WORKINGDIR%/*}/${TARGETDIR}"
 fi
 
+_notice 'Clearing license and readme.  This is yours now!'
+
+cat <<- ENDOFTEXT > LICENSE
+  You should put a license here.
+  Have a look at https://opensource.org/licenses
+ENDOFTEXT
+
+cat <<- ENDOFTEXT > README.md
+  Title of your project
+  =====================
+
+  And a good description here.
+ENDOFTEXT
+
 _verbose "Initialize git-repo" | _green
 git init
 git add .
