@@ -3,20 +3,16 @@
 #
 #          FILE: setup_ansible_dev_env.sh
 #
-#         USAGE: ./setup_ansible_dev_env.sh 
+#         USAGE: ./setup_ansible_dev_env.sh [hvV]
 #
 #   DESCRIPTION: This script will setup a dev-environment for ansible in the
 #                directory where it is run.
 #
-#       OPTIONS: ---
-#  REQUIREMENTS: ---
-#          BUGS: ---
-#         NOTES: ---
+#       OPTIONS: try -h|--help
+#  REQUIREMENTS: git, python3-venv
 #        AUTHOR: Marco Markgraf (mma), marco.markgraf@gmx.de
-#  ORGANIZATION: NPG
 #       CREATED: 2020-12-06 11:17
 #       LICENSE: BSD-2-CLAUSE
-#      REVISION:  ---
 #===============================================================================
 
 #=== Init ======================================================================
@@ -32,7 +28,7 @@ WORKINGDIR="$(pwd)"
 NEEDED_PACKAGES='git python3-venv'
 PACKAGE_LIST=''
 
-ScriptVersion="1.0"
+ScriptVersion="1.1"
 
 trap "cleanup" EXIT SIGTERM
 
@@ -46,8 +42,6 @@ usage (){
   -h|--help     Display this message
   -V|--version  Display script version
   -v|--verbose  Print informational text
-  -t|--target   Set the name of your dev-env directory
-                Defaults to '${WORKINGDIR}'
 
   "
   exit 0
@@ -56,8 +50,8 @@ usage (){
 option_handling () {
   # see /usr/share/doc/util-linux/examples/getopt-parse.bash
   OPTS=$(getopt --name "$0" \
-    --options hVvt: \
-    --longoptions help,version,verbose,target: \
+    --options hVv \
+    --longoptions help,version,verbose \
     --shell bash \
     -- "$@") \
     || (echo; echo "See above and try \"$0 --help\""; echo ; exit 1)
@@ -76,10 +70,6 @@ option_handling () {
       -v|--verbose)
         VERBOSE=true
         shift
-        ;;
-      -t|--target)
-        TARGETDIR="$2"
-        shift 2
         ;;
       --)
         shift ; break
@@ -158,12 +148,6 @@ for item in ${WORKINGDIR}/requirements.*.txt; do
   fi
 done
 
-if [ ! -z ${TARGETDIR+x} ] ; then
-  _notice "Renameing ${WORKINGDIR} to ${WORKINGDIR%/*}/${TARGETDIR}" | _green
-  mv "${WORKINGDIR}" "${WORKINGDIR%/*}/${TARGETDIR}"
-  cd "${WORKINGDIR%/*}/${TARGETDIR}"
-fi
-
 _notice 'Clearing license and readme.  This is yours now!'
 
 cat <<- ENDOFTEXT > LICENSE
@@ -186,4 +170,3 @@ git commit -m 'Initial commit'
 _notice "=== Done! ======================================================================"
 
 #=== End =======================================================================
-

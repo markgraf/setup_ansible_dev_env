@@ -7,5 +7,6 @@ and initialize a git-repo.
 Clone this repo to where you want to setup your dev-environment for Ansible
 and run the shellscript:
 
-    $ ./setup_ansible_dev_env.sh -t MyAwesomeAnsibleProject
+    $ git clone https://github.com/markgraf/setup_ansible_dev_env.git MyAwesomeAnsibleProject
+    $ ./setup_ansible_dev_env.sh
 
