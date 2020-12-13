@@ -3,7 +3,9 @@
 #
 #          FILE: setup_ansible_dev_env.sh
 #
-#         USAGE: ./setup_ansible_dev_env.sh [hvV]
+#         USAGE:
+#         $ git clone https://github.com/markgraf/setup_ansible_dev_env.git MyAwesomeAnsibleProject
+#         $ ./setup_ansible_dev_env.sh [hvV]
 #
 #   DESCRIPTION: This script will setup a dev-environment for ansible in the
 #                directory where it is run.
@@ -24,11 +26,11 @@ set -o errtrace  # any trap on ERR is inherited
 unalias -a       # avoid rm being aliased to rm -rf and similar issues
 LANG=C           # avoid locale issues
 VERBOSE=         # Don't be verbose, unless given '-v'-option
-WORKINGDIR="$(pwd)"
-NEEDED_PACKAGES='git python3-venv'
-PACKAGE_LIST=''
+workingdir="$(pwd)"
+needed_packages='git python3-venv'
+package_list=''
 
-ScriptVersion="1.1"
+ScriptVersion="1.2"
 
 trap "cleanup" EXIT SIGTERM
 
@@ -37,6 +39,9 @@ usage (){
   echo "
 
   Usage :  ${0##/*/} [options] [--]
+
+  Description:
+      Basic setup of an Ansible development environment.
 
   Options:
   -h|--help     Display this message
@@ -114,37 +119,48 @@ option_handling "$@"
 _notice "=== Setting up Ansible Dev-Environment ========================================="
 
 _verbose 'Checking if needed packages are present...' | _green
-for item in $NEEDED_PACKAGES ; do
-  dpkg -l $item > /dev/null 2>&1 || PACKAGE_LIST+=" $item"
+for item in $needed_packages ; do
+  dpkg -l $item > /dev/null 2>&1 || package_list+=" $item"
 done
 
-if [ ${#PACKAGE_LIST} -gt 0 ] ; then
-  _notice "Need to install: $PACKAGE_LIST"
-  sudo apt -y install $PACKAGE_LIST
+if [ ${#package_list} -gt 0 ] ; then
+  _notice "Need to install: $package_list"
+  sudo apt -y install $package_list
 fi
 
-if [ -d "${WORKINGDIR}/.git" ]; then
-  _verbose 'Removing previously existing .git directory' | _green
-  rm -rf "${WORKINGDIR}/.git"
+if [ -f "${workingdir}/.delete.me" ] ; then
+  _verbose 'Removing previously existing .git directory to make this yours.' | _green
+  rm -rf "${workingdir}/.git"
+  rm -f "${workingdir}/.delete.me"
 fi
 
-if [ -d "${WORKINGDIR}/.venv" ]; then
+if [ -d "${workingdir}/.venv" ]; then
   _verbose 'Removing previously existing .venv directory' | _green
-  rm -rf "${WORKINGDIR}/.venv"
+  rm -rf "${workingdir}/.venv"
 fi
 
 _verbose "Setup virtual environment in .venv" | _green
-python3 -m venv ${WORKINGDIR}/.venv
+python3 -m venv ${workingdir}/.venv
 
 _verbose "Install ansible..." | _green
-${WORKINGDIR}/.venv/bin/pip3 install ansible
+${workingdir}/.venv/bin/pip3 install ansible
 
-for item in ${WORKINGDIR}/requirements.*.txt; do
-  _verbose "Install $item ..." | _green
+for item in ${workingdir}/requirements.*.txt; do
+  _verbose "Processing $item ..." | _green
   if [[ -s ${item} ]]; then
-    ${WORKINGDIR}/.venv/bin/pip3 install -r ${item}
+    ${workingdir}/.venv/bin/pip3 install -r ${item}
   else
-    printf '%s\n' "$item is empty. Nothing to do"
+    printf '%s\n' "$item is empty. Nothing to do" | _green
+  fi
+done
+
+for item in ${workingdir}/requirements.*.yml; do
+  _verbose "Processing $item ..." | _green
+  filesize=$(stat -c%s "$item")
+  if (( filesize > 4 )); then
+    ${workingdir}/.venv/bin/ansible-galaxy install -r ${item}
+  else
+    printf '%s\n' "$item is empty. Nothing to do" | _green
   fi
 done
 
