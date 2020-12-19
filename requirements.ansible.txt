@@ -1,2 +1,3 @@
 molecule-vagrant
+molecule[ansible]
 molecule[lint]

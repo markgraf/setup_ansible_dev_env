@@ -27,7 +27,13 @@ unalias -a       # avoid rm being aliased to rm -rf and similar issues
 LANG=C           # avoid locale issues
 VERBOSE=         # Don't be verbose, unless given '-v'-option
 workingdir="$(pwd)"
-needed_packages='git python3-venv'
+needed_packages=' \
+  git \
+  libssl-dev \
+  python3-pip \
+  python3-vagrant \
+  python3-venv \
+  '
 package_list=''
 
 ScriptVersion="1.2"
@@ -142,15 +148,15 @@ fi
 _verbose "Setup virtual environment in .venv" | _green
 python3 -m venv ${workingdir}/.venv
 
-_verbose "Install ansible..." | _green
-${workingdir}/.venv/bin/pip3 install ansible
+_verbose 'upgrading pip, setuptools and wheel to avoid "error: invalid command "bdist_wheel"' | _green
+${workingdir}/.venv/bin/pip3 install --upgrade pip setuptools wheel
 
 for item in ${workingdir}/requirements.*.txt; do
   _verbose "Processing $item ..." | _green
   if [[ -s ${item} ]]; then
-    ${workingdir}/.venv/bin/pip3 install -r ${item}
+    ${workingdir}/.venv/bin/pip install -r ${item}
   else
-    printf '%s\n' "$item is empty. Nothing to do" | _green
+    _verbose "$item is empty. Nothing to do." | _green
   fi
 done
 
