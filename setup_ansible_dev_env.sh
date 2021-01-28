@@ -125,7 +125,7 @@ option_handling "$@"
 _notice "=== Setting up Ansible Dev-Environment ========================================="
 
 _verbose 'Checking if needed packages are present...' | _green
-for item in $needed_packages ; do
+for item in ${needed_packages//\\} ; do
   dpkg -l $item > /dev/null 2>&1 || package_list+=" $item"
 done
 
